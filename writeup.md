@@ -11,7 +11,7 @@
 ## Reflection
 As part of this first mini project we use simple image processing steps like edge detection and Hough Line, to find lane lines on the road. The algorithm relies on some domain knowledge about where to expect the right and left lane line to be, and uses a region mask to ignore lines found in other parts of the image.
 Final processing step is to combine the found lines to make one solid line in each side, This line should as close as possible correspond with the real lane lines in the image.
-This algorithm only tries to fit a straight line, and is there for good on straight roads, but will have challenges in curves.
+This algorithm only tries to fit a straight line, and can works on straight roads, but will have challenges in curves.
 
 ## 1. Processing Pipeline
 
