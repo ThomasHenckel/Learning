@@ -29,7 +29,7 @@ def calibrate_camera(calibration_images_dir,savePath,nx,ny):
         if ret == True:
             imgpoints.append(corners)
             objpoints.append(objp)
-
+    print(objpoints)
     test_img = cv2.imread(images[0])
     ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, test_img.shape[::-1][1:3],None,None)
 

@@ -12,8 +12,8 @@ from moviepy.editor import VideoFileClip
 class Line():
     def __init__(self):
         # Define conversions in x and y from pixels space to meters
-        self.ym_per_pix = 3/290 # meters per pixel in y dimension (standard lane line in m / the pixel length of one lane line in px plotted out on the transformed image)
-        self.xm_per_pix = 3.7/500 # meters per pixel in x dimension (standard line width in m / the with of the lane line in px in the transformed image)
+        self.ym_per_pix = 3/165 # meters per pixel in y dimension (standard lane line in m / the pixel length of one lane line in px plotted out on the transformed image)
+        self.xm_per_pix = 3.7/440 # meters per pixel in x dimension (standard line width in m / the with of the lane line in px in the transformed image)
         self.n = 10
         # x values of the last n fits of the line
         self.recent_xfitted = [] 
@@ -95,9 +95,19 @@ def load_camera_calibration(calibrationFile):
 
 def get_perspective_transform_vector(imgshape):
     # Perspective Transform variables
-    src = np.float32([[538,490],[742,490],[257,682],[1023,682]]) # found by plotting out laneline on an image with a straight road
+    src = np.float32(
+        [[588,455],
+        [257,682],
+        [imgshape[1]-257,682],
+        [imgshape[1]-588,455]]) 
+
     sidepadding = 150
-    dst = np.float32([[sidepadding,400],[imgshape[0]-sidepadding,400],[sidepadding,imgshape[1]],[imgshape[0]-sidepadding,imgshape[1]]])
+    dst = np.float32(
+        [[sidepadding,0],
+        [sidepadding,imgshape[1]],
+        [imgshape[0]-sidepadding,imgshape[1]],
+        [imgshape[0]-sidepadding,0]])
+    
     #use cv2.getPerspectiveTransform() to get M, the transform matrix
     return cv2.getPerspectiveTransform(src,dst)
 
@@ -106,9 +116,9 @@ def calculate_curvature(fit,y):
     B = fit[1]
     return np.power((np.square(2*A*y+B)+1),1.5)/np.abs(2*A)
 
-def measure_curvature(x,ploty):
-    fit_cr = np.polyfit(ploty, x, 2)
-    curverad = calculate_curvature(fit_cr,np.max(ploty)) 
+def measure_curvature(x,y):
+    fit_cr = np.polyfit(y, x, 2)
+    curverad = calculate_curvature(fit_cr,np.max(y)) 
     return curverad
 
 def measure_distance_to_center(left_line,right_line,imagewidth):
@@ -237,7 +247,9 @@ class FindLaneLines():
 
         # color transforms, gradients or other methods to create a thresholded binary image
         hls_binary,hls_color = hls_gradient_select(undist)
-
+        cv2.imwrite( "output_images/test4_gradient.jpg", hls_binary.astype('uint8') * 255)
+        #cv2.imwrite( "output_images/test4_gradient_colortest.jpg", hls_color)
+        
         # Do a perspective transform
         binary_warped = cv2.warpPerspective(hls_binary,self.M,(img.shape[0],img.shape[1]))
         
@@ -248,8 +260,8 @@ class FindLaneLines():
         vis_img = np.zeros([binary_warped.shape[0],binary_warped.shape[1],3],dtype=np.uint8)
 
         # Colors in the left and right lane regions
-        right_line = np.array([self.left_lane_line.bestx, self.ploty], dtype=np.int32).T
-        left_line = np.array([self.right_lane_line.bestx, self.ploty], dtype=np.int32).T
+        left_line = np.array([self.left_lane_line.bestx, self.ploty], dtype=np.int32).T
+        right_line = np.array([self.right_lane_line.bestx, self.ploty], dtype=np.int32).T
         both_lines = np.concatenate((left_line, np.flipud(right_line)), axis=0)
         cv2.fillPoly(vis_img, [both_lines.astype(np.int32)], (255, 255, 0))
         cv2.polylines(vis_img, [right_line.astype(np.int32)], False, (255, 0, 0),thickness=5 )
@@ -260,13 +272,13 @@ class FindLaneLines():
 
         # Add Curvature of lane and the distance from the center of the road to the center of the car
         average_curvature = np.mean([self.left_lane_line.radius_of_curvature,self.right_lane_line.radius_of_curvature])
-        font = cv2.FONT_HERSHEY_DUPLEX
-        cv2.putText(out_img, "Road curvature: {:6.2f}m".format(average_curvature), (100, 100), font, fontScale=2, thickness=2, color=(255, 255, 255))
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(out_img, "Road curvature: {:6.2f}m".format(average_curvature), (700, 50), font, fontScale=1, thickness=2, color=(255, 255, 255))
         meters_from_center = measure_distance_to_center(self.left_lane_line.solve_average(binary_warped.shape[0]),self.right_lane_line.solve_average(binary_warped.shape[0]),binary_warped.shape[1])*self.left_lane_line.xm_per_pix
-        cv2.putText(out_img, "Road center distance: {:6.4f}m".format(meters_from_center), (100, 150), font, fontScale=2, thickness=2, color=(255, 255, 255))
+        cv2.putText(out_img, "Road center distance: {:6.4f}m".format(meters_from_center), (700, 100), font, fontScale=1, thickness=2, color=(255, 255, 255))
         
         # add visualization to the real image
-        out_img = cv2.addWeighted(img, 1, out_img, 0.3, 0)
+        out_img = cv2.addWeighted(img, 1, out_img, 0.5, 0)
 
         # Show the warped lane line on top of the gradient image
         if self.debug:
@@ -316,8 +328,8 @@ if __name__ == '__main__':
     
 
     clip1 = VideoFileClip(args.input)
-    white_clip = clip1.fl_image(fll.process_image) #NOTE: this function expects color images!!
-    white_clip.write_videofile(args.savePath, audio=False)
+    #white_clip = clip1.fl_image(fll.process_image) #NOTE: this function expects color images!!
+    #white_clip.write_videofile(args.savePath, audio=False)
 
     # read in the camera calibration
     #images_dir = 'test_images/test*.jpg'
@@ -327,8 +339,9 @@ if __name__ == '__main__':
     #for fname in images:
         
         # Undistort each image
-    #    img = cv2.imread(fname)
-    #    out_img = fll.process_image(img)
+    img = cv2.imread('test_images/test6.jpg')
+    out_img = fll.process_image(img)
+    cv2.imwrite( "output_images/test6_final.jpg", out_img)
 
     #    plt.imshow(out_img)
     #    plt.show(block=False)
