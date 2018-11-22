@@ -247,7 +247,7 @@ class FindLaneLines():
 
         # color transforms, gradients or other methods to create a thresholded binary image
         hls_binary,hls_color = hls_gradient_select(undist)
-        cv2.imwrite( "output_images/test4_gradient.jpg", hls_binary.astype('uint8') * 255)
+        #cv2.imwrite( "output_images/test4_gradient.jpg", hls_binary.astype('uint8') * 255)
         #cv2.imwrite( "output_images/test4_gradient_colortest.jpg", hls_color)
         
         # Do a perspective transform
@@ -328,8 +328,8 @@ if __name__ == '__main__':
     
 
     clip1 = VideoFileClip(args.input)
-    #white_clip = clip1.fl_image(fll.process_image) #NOTE: this function expects color images!!
-    #white_clip.write_videofile(args.savePath, audio=False)
+    white_clip = clip1.fl_image(fll.process_image) #NOTE: this function expects color images!!
+    white_clip.write_videofile(args.savePath, audio=False)
 
     # read in the camera calibration
     #images_dir = 'test_images/test*.jpg'
@@ -337,12 +337,9 @@ if __name__ == '__main__':
     #images = glob.glob(images_dir)
 
     #for fname in images:
-        
-        # Undistort each image
-    img = cv2.imread('test_images/test6.jpg')
-    out_img = fll.process_image(img)
-    cv2.imwrite( "output_images/test6_final.jpg", out_img)
-
-    #    plt.imshow(out_img)
-    #    plt.show(block=False)
-    #    input('press <ENTER> to continue')
+        #img = cv2.imread('test_images/test4.jpg')
+        #out_img = fll.process_image(img)
+        #cv2.imwrite( "output_images/test4_final.jpg", out_img)
+        #plt.imshow(out_img)
+        #plt.show(block=False)
+        #input('press <ENTER> to continue')
