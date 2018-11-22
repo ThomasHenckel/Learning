@@ -1,4 +1,4 @@
-##Advanced Lane Finding Project
+
 
 [//]: # (Image References)
 
@@ -16,6 +16,7 @@
 [image10]:./test_images/test4.jpg "Original"
 [image11]: ./examples/curve.jpg "Fit Visual"
 [video1]: ./output_images/project_video.mp4 "Video"
+## Advanced Lane Finding Project
 
 ### Summary
 To try out the lane finding there are two steps, camera calibration using calibrate_camera.py, it takes checkboard calibration images, and creates a camera calibration file needed for next step
