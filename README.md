@@ -137,11 +137,13 @@ Finding the lane line starts by taking the lower half of the image and in the ho
 Taking the peak on the right and left half of the image gives us a starting point for our lane detector.
 From the starting point the line is detected using a sliding window, with a predefined height and with. for each time the window is sided up, we move the center of the window to the mean of the x position of all the active pixels in the window. 
 The sliding window is only moved if we are confident that we have found a line, that is if the number of active pixels is over some threshold. This last rule makes sure that our window does not run of in some random direction when detecting dashed lines. but it also may make it impossible to start the line detector on a curved dashed line.
-![alt text][image7]
 __Find line from previous frame__
 When the lane line is already found, we can look for it based on the previous fitted line, this is a simple process of taking all active pixels with some defined margin of the last line. to make this approach a bit more robust the search arear is not actually the last prediction, but instead the average of the last 10 predictions, smoothening out lines that might be a bit off.
 lane finding is performed in `find_lane_pixels()`
-![alt text][image7b]
+
+Cold start            |  Find from previous
+:-------------------------:|:-------------------------:
+![alt text][image7]  |  ![alt text][image7b]
 2. When a set of activated pixels are found, the X and Y pixel locations are fitted using `np.polyfit()` this fit has x and y reversed as the lane line might have the same y value for several x values.
 When a line is fitted, the x values for each y value in the image is calculated, and this is the line used to display the found lane line.
 To compensate for the jitter each fitted line is added to a sliding average, and the calculated x values is as well added to a sliding average, to smoothen the display of the lane line.
