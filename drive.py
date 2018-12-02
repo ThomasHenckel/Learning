@@ -21,6 +21,42 @@ app = Flask(__name__)
 model = None
 prev_image_array = None
 
+import tensorflow as tf
+def initialize_session():
+    clear_session()
+    from keras.backend.tensorflow_backend import set_session
+    config = tf.ConfigProto()
+    config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
+    config.gpu_options.per_process_gpu_memory_fraction = 0.7
+    #config.log_device_placement = True  # to log device placement (on which device the operation ran)
+                                        # (nothing gets printed in Jupyter, only if you run it standalone)
+    sess = tf.Session(config=config)
+    set_session(sess)  # set this TensorFlow session as the default session for Keras
+    
+
+def clear_session():
+    """Destroys the current TF graph and creates a new one.
+    Useful to avoid clutter from old models / layers.
+    """
+    global _SESSION
+    global _GRAPH_LEARNING_PHASES
+    tf.reset_default_graph()
+    reset_uids()
+    _SESSION = None
+    phase = tf.placeholder_with_default(False,
+                                        shape=(),
+                                        name='keras_learning_phase')
+    _GRAPH_LEARNING_PHASES = {}
+    _GRAPH_LEARNING_PHASES[tf.get_default_graph()] = phase
+    
+def reset_uids():
+    """Resets graph identifiers.
+    """
+    global _GRAPH_UID_DICTS
+    _GRAPH_UID_DICTS = {}
+
+initialize_session()
+
 
 class SimplePIController:
     def __init__(self, Kp, Ki):
@@ -44,7 +80,7 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
+set_speed = 30
 controller.set_desired(set_speed)
 
 
