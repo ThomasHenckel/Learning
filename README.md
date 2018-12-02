@@ -46,12 +46,13 @@ The code for the model training is found in [model.py](./model.py), the training
 ##### Normalize and crop input
 The most common normalization on images is to divide by 255 to get the input in a range from 0-1, this I have until now done as a preprocessing step, but Keras also have possibility to add this into the model as shown in the first layer of the model in the function train_model_dataframe() `Lambda(lambda x: x / 255.0)`
 Another step that can also be performed in the model is cropping the image, in our case the bottom part of the image only display the hood of the car, and the top part only objects surrounding the road, by cropping these distractions away we expect to get better accuracy.
+
 Original Image             |  cropped image
 :-------------------------:|:-------------------------:
 ![alt text][image1] |  ![alt text][image3]
 
 ##### Flipping images and steering angels
-The test track is a circular, and the car is driving counter clockwise on the track, because of this the car would steer more to the left than to the right, and if we don’t compensate for this our model would learn this behavior. a good way of compensating for this is flipping all images on the horizontal axis, and then also reversing the steering angle
+The test track is a circular, and the car is driving counter clockwise on the track, because of this the car would steer more to the left than to the right, and if we don’t compensate for this our model would learn this behavior. a good way of compensating for this is flipping all images on the horizontal axis, and then also reversing the steering angle.
 
 Original Image             |  Flipped image
 :-------------------------:|:-------------------------:
@@ -61,6 +62,7 @@ Flipping of images and adding the flipped images to the training data is done in
 
 ##### Use side mounted cameras for training
 Producing training data that lets the model learn to take the model to the center of the road can be hard to produce, if driving perfectly centered on the road no data is there to show what action to take when the car is getting of the center. One way to get this data is to record data starting the car off the center and driving it back to the center of the road. another approach is to use the side mounted cameras, and then adding a bit to the steering angle on the left image and subtracting a bit from the right.
+
 left Image             |  Center image|  Right image
 :-------------------------:|:-------------------------:|:-------------------------:
 ![alt text][image4] <br> steering angel = 0.084 |  ![alt text][image1] <br> steering angel = -0,066|  ![alt text][image5] <br> steering angel = -0,216
@@ -69,7 +71,9 @@ Adding side camera images to the training data is done in use_side_camera() note
 
 ##### Implement the CNN mentioned in the Nvidia article
 In [End-to-End Deep Learning for Self-Driving Cars](https://devblogs.nvidia.com/deep-learning-self-driving-cars/) Nvidia shows the network architecture that they have successfully used to train a self-driving car, it consists of a normalization layer followed by 5 convolutional layers, and then 4 fully connected layers.
+
 ![alt text][image6]
+
 The first 3 convolution layers has a 5x5 kernel and uses a stride of 2x2 and the last 2 use a kernel of 3x3 and a 1x1 stride.
 
 This network architecture was actually also the final architecture, as the next step of generating 2 full laps of training data, was able to bring the care safely through the training track.
