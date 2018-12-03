@@ -26,7 +26,7 @@ and then start the simulator in "Autonomous mode"
 [image4]: ./images/left_2018_12_01_13_49_58_534.jpg "Left Image"
 [image5]: ./images/right_2018_12_01_13_49_58_534.jpg "Right Image"
 [image6]: ./images/cnn-architecture-624x890.png "CNN Architecture"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+[image7]: ./images/loss_plot.png "Loss Plot"
 
 ### Model Architecture and Training Strategy
 
@@ -86,3 +86,27 @@ The model architecture and the training is found in train_model_dataframe()
 For each of these steps until this point the training data was only around 100 meters of the test track but was enough to show that each step was improving the model.
 generating more training data was done by taking the car around the track 2 full rounds, keeping the care as good as possible in the center. this was done using the mouse and was not all that simple, i have generated a small vide of my [driving skills.](./output/run0.mp4)
 I tend to hug the inside of the curves, but my theory is that it is not all that bad, as the car was always more likely to drive on in a curve than turning to much.
+
+##### Train the model, and testing it out on the track
+The final model were trained on 22213 training images, taken from 2 laps of driving around the track.
+while training the validation loss was observed, and the model was saved after each epoch, if the validation loss decreased from the previous epoch.
+The important thing to watch for is the difference in validation and training loss, if the training loss starts to decrease, while the validation loss stops decreasing or increases, that is a sign of overfitting, and the training can stop.
+
+The figure below shows training for 20 epochs
+
+![alt text][image7]
+
+After 15 epochs the validation loss starts to flatten out. And the best model is saved at Epoch 20.
+A test of this model shows that it is taking the care successfully around the track, even when setting the speed to 30mph. [See the video here](./output/run1.mp4)
+We could properly decrease the loss a bit more by continue training, as the validation loss are slightly decreasing, but as the car drives fine we stop training here.
+
+If the accuracy at the point where the validation loss stops decreasing is not good enough, there are several things that can be tried out like generating more data and try out dropout layers in the model architecture.
+
+#### 2. Future work
+In the simulator there are a 2. track, where the lane lines are different, and where the lane is intended for traffic in both directions.
+
+The model fails completely driving the car on this track, and it looks like the model trained for 20 epochs was worse than the same model trained on 5 epochs.
+
+Here I think we see a overfitting problem, although the model is not overfitting that much when looking at the training and testing loss, it is overfitting to the track, as all the images are from the same track, and those 2 laps on the track.
+
+So it will be fun to see how well the care does then having training data from the 2 tracks, or if it is actually possible to generalize the model with data from track 1 so much that it can run on track 2.
