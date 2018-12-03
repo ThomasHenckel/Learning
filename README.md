@@ -4,15 +4,15 @@
 
 This project shows how to train a convolutional network using images of the road and the steering angle. in the project we use a [simulator](https://github.com/udacity/self-driving-car-sim) both to generate training data, and later to test the generated model.
 
-Generate training images:
+__Generate training images:__
 Start up the simulator in "Training mode" press 'r' whenever you want to record, and then drive the car around the track keeping it fairly centered on the road. this will produce a folder with images.
 
-Training the network:
-run: python model.py -i path/to/images
+__Training the network:__
+run: `python model.py -i path/to/images`
 This will train for 5 epochs, to continue training add -m model.h5
 
-Test out the model on the simulator:
-Run: python drive.py model.h5
+__Test out the model on the simulator:__
+Run: `python drive.py model.h5`
 and then start the simulator in "Autonomous mode"
 
 [This is](./output/run1.mp4) a video of the resulting driving by the model trained with 2 laps of training data.
