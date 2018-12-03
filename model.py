@@ -9,6 +9,7 @@ print("Tensorflow version: "+tf.__version__)
 from sklearn.model_selection import train_test_split
 import json
 from PIL import Image
+import matplotlib.pyplot as plt
 
 import os
 import argparse
@@ -163,6 +164,26 @@ def train_model_dataframe(X_train, X_test, y_train, y_test,location,batch_size,m
     
     return model, fit.history
 
+def plot_metrics(hist, stop=50):
+    plt.subplots(figsize=(10,4))
+                            
+                          
+    plt.plot(range(stop), hist['loss'], label='Training', color='#FF533D')
+    plt.plot(range(stop), hist['val_loss'], label='Validation', color='#03507E')
+    plt.title('Loss')
+    plt.ylabel('Loss')
+    plt.xlabel('Epoch')
+    
+    plt.savefig('loss_plot.png', bbox_inches='tight')                         
+    
+    print ("Best Model:") 
+    print_best_model_results(hist)
+
+def print_best_model_results(model_hist):
+    best_epoch = np.argmin(model_hist['val_loss'])
+    print ('epoch:', best_epoch+1, \
+    ', val_loss:', model_hist['val_loss'][best_epoch])
+
 def parse_args():
     """Parse input arguments.
     Parameters
@@ -179,7 +200,7 @@ def parse_args():
                         default='../driving_data/', type=str)
     parser.add_argument('--m', dest='modelPath',
                         help='Continue training model',
-                        default="model.h5", type=str)
+                        default=None, type=str)
     args = parser.parse_args()
     return args
 
@@ -193,7 +214,7 @@ if __name__ == '__main__':
     location = args.input+'IMG/'
     batch_size = 16
     model_path = 'model.h5'
-    epoch = 5
+    epoch = 20
 
     driving_log = load_driving_log(args.input+"driving_log.csv")
     flip_images(location, location)
@@ -206,5 +227,7 @@ if __name__ == '__main__':
     if (args.modelPath):
         model = load_model('model.h5')
 
-    train_model_dataframe(X_train, X_test, y_train, y_test,location,batch_size,model_path,epoch,model)
+    model, history = train_model_dataframe(X_train, X_test, y_train, y_test,location,batch_size,model_path,epoch,model)
+
+    plot_metrics(history,epoch)
 

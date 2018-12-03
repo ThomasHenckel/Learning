@@ -63,6 +63,8 @@ Flipping of images and adding the flipped images to the training data is done in
 ##### Use side mounted cameras for training
 Producing training data that lets the model learn to take the model to the center of the road can be hard to produce, if driving perfectly centered on the road no data is there to show what action to take when the car is getting of the center. One way to get this data is to record data starting the car off the center and driving it back to the center of the road. another approach is to use the side mounted cameras, and then adding a bit to the steering angle on the left image and subtracting a bit from the right.
 
+The steering angle compensation to use in the final model was 0.15, initially it was set to 0.2, but this made the car oscillate on some of the straight parts. lowering it to 0.1 made this a bit better, but resulted in the car missing a turn and driving into the water. so in the end 0.15 was chosen.
+
 left Image             |  Center image|  Right image
 :-------------------------:|:-------------------------:|:-------------------------:
 ![alt text][image4] <br> steering angel = 0.084 |  ![alt text][image1] <br> steering angel = -0,066|  ![alt text][image5] <br> steering angel = -0,216
@@ -83,4 +85,4 @@ The model architecture and the training is found in train_model_dataframe()
 ##### Generate more training data
 For each of these steps until this point the training data was only around 100 meters of the test track but was enough to show that each step was improving the model.
 generating more training data was done by taking the car around the track 2 full rounds, keeping the care as good as possible in the center. this was done using the mouse and was not all that simple, i have generated a small vide of my [driving skills.](./output/run0.mp4)
-I tend to hug the inside of the curves, but my theory s that it is not all that bad, as the car was always more likely to drive on in a curve than turning to much.
+I tend to hug the inside of the curves, but my theory is that it is not all that bad, as the car was always more likely to drive on in a curve than turning to much.
