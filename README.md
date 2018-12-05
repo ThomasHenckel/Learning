@@ -1,56 +1,62 @@
 # **Finding Lane Lines on the Road** 
-[![Udacity - Self-Driving Car NanoDegree](https://s3.amazonaws.com/udacity-sdc/github/shield-carnd.svg)](http://www.udacity.com/drive)
+[//]: # (Image References)
 
-<img src="examples/laneLines_thirdPass.jpg" width="480" alt="Combined Image" />
-
-Overview
----
-
-When we drive, we use our eyes to decide where to go.  The lines on the road that show us where the lanes are act as our constant reference for where to steer the vehicle.  Naturally, one of the first things we would like to do in developing a self-driving car is to automatically detect lane lines using an algorithm.
-
-In this project you will detect lane lines in images using Python and OpenCV.  OpenCV means "Open-Source Computer Vision", which is a package that has many useful tools for analyzing images.  
-
-To complete the project, two files will be submitted: a file containing project code and a file containing a brief write up explaining your solution. We have included template files to be used both for the [code](https://github.com/udacity/CarND-LaneLines-P1/blob/master/P1.ipynb) and the [writeup](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md).The code file is called P1.ipynb and the writeup template is writeup_template.md 
-
-To meet specifications in the project, take a look at the requirements in the [project rubric](https://review.udacity.com/#!/rubrics/322/view)
+[image1]: ./images/grayscale.jpg "Grayscale"
+[image2]: ./images/blur.jpg "Blur"
+[image3]: ./images/edges.jpg "Edges"
+[image4]: ./images/hough_line.jpg "Houge line"
+[image5]: ./images/lane_lines.jpg "Lane Line"
 
 
-Creating a Great Writeup
----
-For this project, a great writeup should provide a detailed response to the "Reflection" section of the [project rubric](https://review.udacity.com/#!/rubrics/322/view). There are three parts to the reflection:
+## Reflection
+As part of this first mini project we use simple image processing steps like edge detection and Hough Line, to find lane lines on the road. The algorithm relies on some domain knowledge about where to expect the right and left lane line to be, and uses a region mask to ignore lines found in other parts of the image.
+Final processing step is to combine the found lines to make one solid line in each side, This line should as close as possible correspond with the real lane lines in the image.
+This algorithm only tries to fit a straight line, and can works on straight roads, but will have challenges in curves.
 
-1. Describe the pipeline
+## 1. Processing Pipeline
 
-2. Identify any shortcomings
+### 1. Grayscale
+We can grayscale the image, as the light intensity between the pavement and both white and yellow lane lines is significant enough to detect them
 
-3. Suggest possible improvements
+![alt text][image1]
 
-We encourage using images in your writeup to demonstrate how your pipeline works.  
+### 2. Blur
+Blurring the image removes noise, and makes it easier to detect the edges from the lane lines
 
-All that said, please be concise!  We're not looking for you to write a book here: just a brief description.
+![alt text][image2]
 
-You're not required to use markdown for your writeup.  If you use another method please just submit a pdf of your writeup. Here is a link to a [writeup template file](https://github.com/udacity/CarND-LaneLines-P1/blob/master/writeup_template.md). 
+### 3. Canny edge detection
+Some tuning is needed here to find the lane lines, while ignoring edges in the image that is not part of the lane line
+
+![alt text][image3]
+
+### 4. Hough line
+from all the edges consistent lines are found, here some parameter tuning is also needed, to find consistent lines that correspond to lane lines, to improve the result this step uses a region of interest mask, to only find lines in the region of the image where we expect the lane line to be.
+This step is done once for the right and once for the left lane line
+
+![alt text][image4]
+
+### 5. Fit the lines to one line
+for both the right and left lane line several line segments are found by the Hough line. both the solid lane line in one side of the road and the dashed in the other side, is at this stage represented by several lines.
+To get the solid line each line segments start- and end coordinates are represented by a point in the image, and a linear fit is used to find the line that best represents these points.
+
+![alt text][image5]
+
+### 2. Identify potential shortcomings with your current pipeline
+
+1. pipeline step 1-4 relies on some trail an error parameter tuning, and it is unknown how well this approach will work in different light settings
+
+2. providing a region of interest, is problematic for lane changes, or if the road is turning so much that the lane line is outside or interest area
+
+3. Fitting the starting and ending point of all lines found is problematic in several ways
+- Long lines and short lines have the same importance, so just a couple of short "outlier" lines can have a big impact of the fitted line
+- lines that is not oriented in the direction we expect the lane line to be, is also included when we do the line fit. in "challenge.mp4" the lower part of the image shows the hood that provides a lot of edges that influences the lane line detection. 
 
 
-The Project
----
+### 3. Suggest possible improvements to your pipeline
 
-## If you have already installed the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) you should be good to go!   If not, you should install the starter kit to get started on this project. ##
+The first thing i would try out if I had to improve the pipeline would be to sort out lines from the fit function that does not have the general direction we expect the lane line to have.
 
-**Step 1:** Set up the [CarND Term1 Starter Kit](https://classroom.udacity.com/nanodegrees/nd013/parts/fbf77062-5703-404e-b60c-95b78b2f3f9e/modules/83ec35ee-1e02-48a5-bdb7-d244bd47c2dc/lessons/8c82408b-a217-4d09-b81d-1bda4c6380ef/concepts/4f1870e0-3849-43e4-b670-12e6f2d4b7a7) if you haven't already.
+Then I would try to make the weight of the line be relative to its length, either with a weight parameter of by simply adding points along the line
 
-**Step 2:** Open the code in a Jupyter Notebook
-
-You will complete the project code in a Jupyter notebook.  If you are unfamiliar with Jupyter Notebooks, check out [Udacity's free course on Anaconda and Jupyter Notebooks](https://classroom.udacity.com/courses/ud1111) to get started.
-
-Jupyter is an Ipython notebook where you can run blocks of code and see results interactively.  All the code for this project is contained in a Jupyter notebook. To start Jupyter in your browser, use terminal to navigate to your project directory and then run the following command at the terminal prompt (be sure you've activated your Python 3 carnd-term1 environment as described in the [CarND Term1 Starter Kit](https://github.com/udacity/CarND-Term1-Starter-Kit/blob/master/README.md) installation instructions!):
-
-`> jupyter notebook`
-
-A browser window will appear showing the contents of the current directory.  Click on the file called "P1.ipynb".  Another browser window will appear displaying the notebook.  Follow the instructions in the notebook to complete the project.  
-
-**Step 3:** Complete the project and submit both the Ipython notebook and the project writeup
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
-
+Further improvements could be to use results and image data from prior image frames, this could make the lane finding less likely to jump totally of for one or two frames. it could also help stich together the dashed lane lines, and remove false edge detections, as we know in which direction an edge ought to move from frame to frame.
