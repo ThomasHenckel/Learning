@@ -78,6 +78,9 @@ class ParticleFilter {
   void updateWeights(double sensor_range, double std_landmark[], 
                      const std::vector<LandmarkObs> &observations,
                      const Map &map_landmarks);
+
+  double multiv_prob(double sig_x, double sig_y, double x_obs, double y_obs,
+                   double mu_x, double mu_y);
   
   /**
    * resample Resamples from the updated set of particles to form
