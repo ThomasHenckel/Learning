@@ -164,6 +164,114 @@ vector<double> getXY(double s, double d, const vector<double> &maps_s, const vec
 	return {x, y};
 }
 
+vector<string> successor_states(string previous_state, int lane)
+{
+	// Provides the possible next states given the current state for the FSM
+	//   discussed in the course, with the exception that lane changes happen
+	//   instantaneously, so LCL and LCR can only transition back to KL.
+	vector<string> states;
+	states.push_back("KL");
+	string state = previous_state;
+	if (state.compare("KL") == 0)
+	{
+		states.push_back("PLC");
+	}
+	else if (state.compare("PLC") == 0)
+	{
+		states.push_back("PLC");
+		if (lane != 0)
+		{
+			states.push_back("LCL");
+		}
+		if (lane != 2)
+		{
+			states.push_back("LCR");
+		}
+	}
+
+	// If state is "LCL" or "LCR", then just return "KL"
+	return states;
+}
+
+void perform_action(string state, int &lane)
+{
+	if (state.compare("KL") == 0)
+	{
+		lane = lane;
+	}
+	else if (state.compare("PLC") == 0)
+	{
+		lane = lane;
+	}
+	else if (state.compare("LCL") == 0)
+	{
+		lane--;
+	}
+	else if (state.compare("LCR") == 0)
+	{
+		lane++;
+	}
+}
+
+int free_space_in_lane(int lane, vector<vector<double>> sensor_fusion, double prev_size, double car_s)
+{
+	int distance = 200;
+	for (int i = 0; i < sensor_fusion.size(); i++)
+	{
+		// car is in my lane
+		float d = sensor_fusion[i][6];
+		// calculate the free space in lane
+
+		if (d < (2 + 4 * lane + 2) && d > (2 + 4 * lane - 2))
+		{
+			double vx = sensor_fusion[i][3];
+			double vy = sensor_fusion[i][4];
+			double check_speed = sqrt(vx * vx + vy * vy);
+			double check_car_s = sensor_fusion[i][5];
+
+			check_car_s += ((double)prev_size * 0.02 * check_speed);
+			check_car_s = check_car_s - car_s;
+
+			if (check_car_s < distance && check_car_s >= -10) // 10 meter buffer to the car behind
+			{
+				distance = check_car_s;
+			}
+		}
+	}
+	std::cout << "distance to car: " << distance << " in lane " << lane << std::endl;
+	return distance;
+}
+
+float calculate_cost(string state, int lane, vector<vector<double>> sensor_fusion, double prev_size, double car_s)
+{
+	int free_in_current_lane = free_space_in_lane(lane, sensor_fusion, prev_size, car_s);
+	if (state.compare("KL") == 0)
+	{
+		if (free_in_current_lane < 30 && free_in_current_lane > 0) // only change lane if ther is a car infront
+		{
+			return 0.8;
+		}
+		else
+		{
+			return 0.1;
+		}
+	}
+	else if (state.compare("PLC") == 0)
+	{
+		return 0.5; // keep following car untill space opens up right or left
+	}
+	else if (state.compare("LCL") == 0)
+	{
+		int free_in_left_lane = free_space_in_lane(lane - 1, sensor_fusion, prev_size, car_s);
+		return 0.60 - (free_in_left_lane / 400.0); // when a space larger than 40 opens up, the cost will be less than 0.5 and car will change from PLC
+	}
+	else if (state.compare("LCR") == 0)
+	{
+		int free_in_right_lane = free_space_in_lane(lane + 1, sensor_fusion, prev_size, car_s);
+		return 0.60 - (free_in_right_lane / 400.0); // when a space larger than 40 opens up, the cost will be less than 0.5 and car will change from PLC
+	}
+}
+
 int main()
 {
 	uWS::Hub h;
@@ -207,8 +315,10 @@ int main()
 
 	double ref_val = 0; // mph
 
-	h.onMessage([&ref_val, &map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy, &lane](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
-																																																														uWS::OpCode opCode) {
+	string state = "KL";
+
+	h.onMessage([&ref_val, &map_waypoints_x, &map_waypoints_y, &map_waypoints_s, &map_waypoints_dx, &map_waypoints_dy, &lane, &state](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+																																																																		uWS::OpCode opCode) {
 		// "42" at the start of the message means there's a websocket message event.
 		// The 4 signifies a websocket message
 		// The 2 signifies a websocket event
@@ -256,28 +366,40 @@ int main()
 
 					bool too_close = false;
 
-					// find ref_v to use
-					for (int i = 0; i < sensor_fusion.size(); i++)
+					// safety to avoide colliding with the cars in front
+					int current_lane = free_space_in_lane(lane, sensor_fusion, prev_size, car_s);
+					if (current_lane < 25 && current_lane > 0) // dont slow down if car is behind
 					{
-						// car is in my lane
-						float d = sensor_fusion[i][6];
-						if (d < (2 + 4 * lane + 2) && d > (2 + 4 * lane - 2))
-						{
-							double vx = sensor_fusion[i][3];
-							double vy = sensor_fusion[i][4];
-							double check_speed = sqrt(vx * vx + vy * vy);
-							double check_car_s = sensor_fusion[i][5];
-
-							check_car_s += ((double)prev_size * 0.02 * check_speed);
-
-							if ((check_car_s > car_s) && ((check_car_s - car_s) < 30))
-							{
-								too_close = true;
-							}
-						}
+						too_close = true;
 					}
 
-					if (too_close)
+					//////////////////////////
+					// state machine,
+					//////////////////////////
+
+					// get possible next states
+					vector<string> successor_states_vector = successor_states(state, lane);
+
+					float prefered_action_cost = 1;
+					// evaluate each state, and select the best next state
+					for (int i = 0; i < successor_states_vector.size(); ++i)
+					{
+						float cost_for_action = calculate_cost(successor_states_vector[i], lane, sensor_fusion, prev_size, car_s);
+
+						std::cout << "action: " << successor_states_vector[i] << " at cost " << cost_for_action << std::endl;
+						if (cost_for_action < prefered_action_cost)
+						{
+							prefered_action_cost = cost_for_action;
+							state = successor_states_vector[i];
+						}
+					}
+					std::cout << "prefered_action: " << state << " in lane " << lane << std::endl;
+					perform_action(state, lane);
+
+					//////////////////////////
+					// speed controller
+					//////////////////////////
+					if (too_close && ref_val > .224) // lower speed but dont go backwards
 					{
 						ref_val -= .224;
 					}
@@ -298,9 +420,15 @@ int main()
 					double ref_y = car_y;
 					double ref_yaw = deg2rad(car_yaw);
 
-					// TODO: define a path made up of (x,y) points that the car will visit sequentially every .02 seconds
-
-					if (prev_size < 2)
+					//////////////////////////
+					// trajectory generator
+					//////////////////////////
+					if (ref_val < .224) // if the car i stopped, place only one point
+					{
+						ptsx.push_back(car_x);
+						ptsy.push_back(car_y);
+					}
+					else if (prev_size < 2) // we need 2 points to reflects the cars location and heading, this ensures a smoth trejectory when applying the spline
 					{
 						double prev_car_x = car_x - cos(car_yaw);
 						double prev_car_y = car_y - sin(car_yaw);
@@ -311,7 +439,7 @@ int main()
 						ptsx.push_back(car_x);
 						ptsy.push_back(car_y);
 					}
-					else
+					else // if there are points left in the previous trejectory use these
 					{
 						ref_x = previous_path_x[prev_size - 1];
 						ref_y = previous_path_y[prev_size - 1];
@@ -327,6 +455,7 @@ int main()
 						ptsy.push_back(ref_y);
 					}
 
+					// give the spline 3 points spaced 30 meters apart, that is all in the lane we want the car to drive
 					vector<double> next_wp0 = getXY(car_s + 30, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
 					vector<double> next_wp1 = getXY(car_s + 60, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
 					vector<double> next_wp2 = getXY(car_s + 90, (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
@@ -340,6 +469,7 @@ int main()
 					ptsx.push_back(next_wp2[0]);
 					ptsy.push_back(next_wp2[1]);
 
+					// convert cordinates into car map cordinates, ensures that we dont get same several y cordinate for the same x cordinate
 					for (int i = 0; i < ptsx.size(); i++)
 					{
 						double shift_x = ptsx[i] - ref_x;
@@ -349,8 +479,8 @@ int main()
 						ptsy[i] = (shift_x * sin(0 - ref_yaw) + shift_y * cos(0 - ref_yaw));
 					}
 
+					// declare and fit the spline to the points on the lane
 					tk::spline s;
-
 					s.set_points(ptsx, ptsy);
 
 					for (int i = 0; i < previous_path_x.size(); i++)
@@ -365,6 +495,7 @@ int main()
 
 					double x_add_on = 0;
 
+					// add waypoints along the spline that is spaced to give the desired driving speed
 					for (int i = 0; i <= 50 - previous_path_x.size(); i++)
 					{
 						double N = target_dist / (0.02 * ref_val / 2.24);
@@ -382,6 +513,7 @@ int main()
 						x_point += ref_x;
 						y_point += ref_y;
 
+						// add the waypoints to the trejectory
 						next_x_vals.push_back(x_point);
 						next_y_vals.push_back(y_point);
 					}
