@@ -67,29 +67,33 @@ int main() {
           double speed = std::stod(j[1]["speed"].get<string>());
           double angle = std::stod(j[1]["steering_angle"].get<string>());
           double steer_value;
-          
           test_i = test_i +1;
-          if (test_i % 3000 == 0){
+          if (test_i % 1000 == 0){
             std::cout << "Set New PID parm" << std::endl;
             pid.Test();
+            string msg = "42[\"reset\",{}]";
+            ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
           }
-          
+          else{
+            
 
-          pid.UpdateError(cte);
-          steer_value = pid.TotalError();
+            pid.UpdateError(cte);
+            steer_value = pid.TotalError();
 
-          auto t_elapsed = duration_cast<microseconds>(high_resolution_clock::now() - t); 
-          t = high_resolution_clock::now();
+            auto t_elapsed = duration_cast<microseconds>(high_resolution_clock::now() - t); 
+            t = high_resolution_clock::now();
 
-          // DEBUG
-          //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " time elapsed: " << t_elapsed.count() << std::endl;
+            // DEBUG
+            //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " time elapsed: " << t_elapsed.count() << std::endl;
 
-          json msgJson;
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.3;
-          auto msg = "42[\"steer\"," + msgJson.dump() + "]";
+            json msgJson;
+            msgJson["steering_angle"] = steer_value;
+            msgJson["throttle"] = 0.3;
+            auto msg = "42[\"steer\"," + msgJson.dump() + "]";
+            ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+          }
           //std::cout << msg << std::endl;
-          ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
+          
         }  // end "telemetry" if
       } else {
         // Manual driving

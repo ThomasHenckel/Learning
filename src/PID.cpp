@@ -70,6 +70,7 @@ void PID::Test() {
       dp[test_i] *= 0.9;
       state = 0;
       test_i = (test_i+1)%3;
+      Test();
     }
   }
   return;
