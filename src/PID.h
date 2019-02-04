@@ -56,12 +56,8 @@ class PID {
 
   double dp[3] = {0.02, 0.1, 0.001};
 
-  bool up = true;
-
   int test_i=0;
-
   double error=0;
-
   double best_error=0;
   int state = 0;
 };

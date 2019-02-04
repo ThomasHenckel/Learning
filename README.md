@@ -1,6 +1,42 @@
 # CarND-Controls-PID
 Self-Driving Car Engineer Nanodegree Program
 
+[//]: # (Image References)
+[image1]: ./images/path_planning.gif "run1"
+
+The goal of this project is to steer a care, given its offset from the center of the road CrossTrackError(cte). The project uses a [simulator](https://github.com/udacity/self-driving-car-sim/releases/tag/v1.45) that provides the cars cte, and this program then calculates the appropriate steering angle.
+
+To produce a smooth trajectory for the car a PID controller is used to calculate the steering angle from the cte.
+A PID controller consists of 3 parts:
+- P: makes sure to steer the car towards the center of the road, proportionally to how far it is from the center.
+If the car would only steer in proportion to its offset to the center, the car would start to oscillate, as it would steer its wheels towards the center, until the time it reaches the center, at this time the car would not be parallel to the center line of the road, and would therefore continue, overshooting, and starting to steer the car back to and over the center again.
+- D: The Delta part of the controller counter steers, and as the P weakens as the car approaches the center of the road, the D controller makes sure that the speed towards the center is dampened. the delta is the current cte minus previous cte
+- I: The I part of the controller centers the car when driving around curves. with only the P and D controller the car would always drive off the center in curves. the I is the sum of all the CTE, and pushes the car towards the center of the road in curves.
+
+**Tuning the parameters of the PID Controller**
+Each part of the PID controller is multiplied with a constant factor. Finding these 3 constants is most times a bit of a trail and error process. Helping with this trial and error the Twiddle algorithm is proposed in one of the lessons.
+Using the Twiddle algorithm on some random initial values would take quite some time, so to start with some initial values that could drive the car to the first bend was selected with manual trial and error, starting by setting only the P and D parameters.
+After the Twiddle algorithm was set to work.
+
+## Running the Code.
+
+### Build Instructions
+
+1. Clone this repo.
+2. Make a build directory: `mkdir build && cd build`
+3. Compile: `cmake .. && make`
+4. Run it: `./pid`.
+
+Start up the simulator
+
+### Simulator.
+You can download the Term2 Simulator which contains the Path Planning Project from the [releases tab](https://github.com/udacity/self-driving-car-sim/releases/tag/v1.45).  
+
+To run the simulator on Mac/Linux, first make the binary file executable with the following command:
+```shell
+sudo chmod u+x {simulator_file_name}
+```
+
 ---
 
 ## Dependencies
@@ -28,71 +64,4 @@ Self-Driving Car Engineer Nanodegree Program
 
 Fellow students have put together a guide to Windows set-up for the project [here](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/files/Kidnapped_Vehicle_Windows_Setup.pdf) if the environment you have set up for the Sensor Fusion projects does not work for this project. There's also an experimental patch for windows in this [PR](https://github.com/udacity/CarND-PID-Control-Project/pull/3).
 
-## Basic Build Instructions
-
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./pid`. 
-
-Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-
-## Editor Settings
-
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
-
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/e8235395-22dd-4b87-88e0-d108c5e5bbf4/concepts/6a4d8d42-6a04-4aa6-b284-1697c0fd6562)
-for instructions and the project rubric.
-
-## Hints!
-
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
 

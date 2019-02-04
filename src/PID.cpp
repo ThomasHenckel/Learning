@@ -25,19 +25,20 @@ void PID::Init(double Kp_, double Kd_,double Ki_) {
 
 void PID::Test() {
   /**
-   * TODO: Initialize PID coefficients (and errors, if needed)
+   * Use Twiddle to tune parameters
    */
   if(best_error ==0)
   {
     best_error = error;
-    std::cout << "better parameters found: " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+    std::cout << "Better parameters found (init): " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
   }
 
   std::cout << "error: : " << error<< "best_error" << best_error <<std::endl;
   if (state == 0){
     p[test_i] += dp[test_i];
     state = 1;
-    std::cout << "testing Parameters up: " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+    std::cout << "Testing Parameters up(0): " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+    error = 0;
     return;
   }
   if (state == 1){
@@ -46,12 +47,14 @@ void PID::Test() {
       dp[test_i] *= 1.1;
       state = 0;
       test_i = (test_i+1)%3;
-      std::cout << "better parameters found: " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+      std::cout << "Better parameters found(1): " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+      Test();
     }
     else{
       p[test_i] -= 2 * dp[test_i];
       state = 2;
-      std::cout << "testing Parameters: down " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+      std::cout << "Testing Parameters: down(1) " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+      error = 0;
       return;
     }
   }
@@ -62,7 +65,8 @@ void PID::Test() {
       dp[test_i] *= 1.1;
       state = 0;
       test_i = (test_i+1)%3;
-      std::cout << "better parameters found: " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+      std::cout << "Better parameters found(2): " << p[0] << ":" << p[1] << ":" << p[2] <<std::endl;
+      Test();
     }
     else
     {
