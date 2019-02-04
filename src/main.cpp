@@ -5,6 +5,8 @@
 #include "json.hpp"
 #include "PID.h"
 #include <time.h>
+#include <chrono> 
+using namespace std::chrono; 
 
 // for convenience
 using nlohmann::json;
@@ -38,17 +40,14 @@ int main() {
   /**
    * TODO: Initialize the pid variable.
    */
-  double tau[] = {0.1,1.5,0.0001};
-  double integral = 0;
-  double cte_prev = 0;
+  pid.Init(0.1,0.0001,1.5);
 
-  double trottle_itter = 0;
+  //clock_t t;
+	//t = clock();
 
-  clock_t t;
-	t = clock();
+  auto t = high_resolution_clock::now();
 
-
-  h.onMessage([&pid, &tau, &cte_prev, &integral, &t](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
+  h.onMessage([&pid, &t](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, 
                      uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -67,23 +66,19 @@ int main() {
           double speed = std::stod(j[1]["speed"].get<string>());
           double angle = std::stod(j[1]["steering_angle"].get<string>());
           double steer_value;
-          /**
-           * TODO: Calculate steering value here, remember the steering value is
-           *   [-1, 1].
-           * NOTE: Feel free to play around with the throttle and speed.
-           *   Maybe use another PID controller to control the speed!
-           */
-          integral = integral + cte;
-          clock_t t_elapsed = clock() - t;
-          t = clock();
-          steer_value = -tau[0] * cte - (tau[1]*(cte-cte_prev)) - tau[2] * integral;
-          cte_prev = cte;
+
+          pid.UpdateError(cte);
+          steer_value = pid.TotalError();
+
+          auto t_elapsed = duration_cast<microseconds>(high_resolution_clock::now() - t); 
+          t = high_resolution_clock::now();
+
           // DEBUG
-          std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " time elapsed: " << t_elapsed << std::endl;
+          std::cout << "CTE: " << cte << " Steering Value: " << steer_value << " time elapsed: " << t_elapsed.count() << std::endl;
 
           json msgJson;
           msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = 0.2;
+          msgJson["throttle"] = 0.5;
           auto msg = "42[\"steer\"," + msgJson.dump() + "]";
           //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
