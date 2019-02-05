@@ -1,6 +1,6 @@
 #include "PID.h"
-#include <cstdlib>
 #include <iostream>
+#include <math.h>
 
 /**
  * TODO: Complete the PID class. You may add any additional desired functions.
@@ -92,7 +92,7 @@ void PID::UpdateError(double cte) {
   i_error = p[2] * integral;
 
   cte_prev = cte;
-  error = error + abs(cte);
+  error = error + fabs(cte);
 }
 
 double PID::TotalError() {
