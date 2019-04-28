@@ -15,12 +15,14 @@
 [image9]: ./output_images/debug_output.jpg "Output"
 [image10]:./test_images/test4.jpg "Original"
 [image11]: ./examples/curve.jpg "Fit Visual"
+[image12]: ./output_images/project_video.gif "Project video"
 [video1]: ./output_images/project_video.mp4 "Video"
 ## Advanced Lane Finding Project
 
 ### Summary
 This project is part of the Udacity self driving car nanodegree, and show how lane finding can be performed using openCV color masking and edge detection.
 The code can process individual images, but is also made to work on a video stream, the resoult of running the code on a video stream can be found [here](./output_images/project_video.mp4)
+![alt text][image12]
 
 To try out the lane finding there are two steps:
 1. camera calibration using calibrate_camera.py, it takes checkboard calibration images, and creates a camera calibration file needed for next step
