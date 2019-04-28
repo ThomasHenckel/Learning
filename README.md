@@ -3,7 +3,7 @@
 Self-Driving Car Engineer Nanodegree Program
 
 [//]: # (Image References)
-[image1]: ./images/success.jpg "run1"
+[image1]: ./images/Success.jpg "run1"
 
 # Overview
 This repository contains the submission code for the Localization course in Udacity's Self-Driving Car Nanodegree.
