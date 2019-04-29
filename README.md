@@ -2,7 +2,7 @@
 Self-Driving Car Engineer Nanodegree Program
 
 [//]: # (Image References)
-[image1]: ./images/path_planning.gif "run1"
+[image1]: ./images/Twiddle.gif "run1"
 
 The goal of this project is to steer a care, given its offset from the center of the road CrossTrackError(cte). The project uses a [simulator](https://github.com/udacity/self-driving-car-sim/releases/tag/v1.45) that provides the cars cte, and this program then calculates the appropriate steering angle.
 
@@ -17,6 +17,7 @@ If the car would only steer in proportion to its offset to the center, the car w
 Each part of the PID controller is multiplied with a constant factor. Finding these 3 constants is most times a bit of a trail and error process. Helping with this trial and error the Twiddle algorithm is proposed in one of the lessons.
 Using the Twiddle algorithm on some random initial values would take quite some time, so to start with some initial values that could drive the car to the first bend was selected with manual trial and error, starting by setting only the P and D parameters.
 After the Twiddle algorithm was set to work.
+![alt text][image1]
 
 ## Running the Code.
 
@@ -63,5 +64,3 @@ sudo chmod u+x {simulator_file_name}
 * Simulator. You can download these from the [project intro page](https://github.com/udacity/self-driving-car-sim/releases) in the classroom.
 
 Fellow students have put together a guide to Windows set-up for the project [here](https://s3-us-west-1.amazonaws.com/udacity-selfdrivingcar/files/Kidnapped_Vehicle_Windows_Setup.pdf) if the environment you have set up for the Sensor Fusion projects does not work for this project. There's also an experimental patch for windows in this [PR](https://github.com/udacity/CarND-PID-Control-Project/pull/3).
-
-
