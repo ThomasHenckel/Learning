@@ -3,7 +3,7 @@
 Self-Driving Car Engineer Nanodegree Program
 
 [//]: # (Image References)
-[image1]: ./images/simulator_run1.jpg "run1"
+[image1]: ./images/simulator_run1.gif "run1"
 
 This project utilizes a Kalman filter to estimate the state of a moving object of interest with noisy lidar and radar measurements.
 
